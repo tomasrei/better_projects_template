@@ -1,0 +1,10 @@
+data/raw/
+data/clean/
+_registry.xlsx
+typst/data.json
+typst/plots/
+typst/tables/
+.Rproj.user/
+*.Rproj
+.Rhistory
+.RData
