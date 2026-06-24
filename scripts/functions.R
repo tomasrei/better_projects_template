@@ -3,6 +3,14 @@ library(openxlsx)
 library(here)
 library(jsonlite)
 
+# ── Project-specific functions ────────────────────────────────────────────────
+
+# plot_   ggplot2 figures
+# tab_    tables (gt, flextable, etc.)
+# calc_   derived statistics or transforms
+# clean_  data cleaning helpers
+# read_   custom data loaders
+
 # ── Script registry ───────────────────────────────────────────────────────────
 
 ScriptMeta <- new_class("ScriptMeta",
@@ -14,7 +22,7 @@ ScriptMeta <- new_class("ScriptMeta",
   )
 )
 
-register_script <- function(name, data_source, description) {
+f_register_script <- function(name, data_source, description) {
   entry <- ScriptMeta(
     name        = name,
     data_source = data_source,
@@ -54,7 +62,7 @@ register_script <- function(name, data_source, description) {
 
 # ── Inline stats for Typst ────────────────────────────────────────────────────
 
-write_stats <- function(stats, namespace = NULL) {
+f_write_stats <- function(stats, namespace = NULL) {
   json_path <- here("typst/data.json")
   existing  <- if (file.exists(json_path)) read_json(json_path) else list()
 
@@ -67,11 +75,3 @@ write_stats <- function(stats, namespace = NULL) {
   merged <- modifyList(existing, new_data)
   write_json(merged, json_path, auto_unbox = TRUE, pretty = TRUE)
 }
-
-# ── Project-specific functions ────────────────────────────────────────────────
-
-# plot_   ggplot2 figures
-# tab_    tables (gt, flextable, etc.)
-# calc_   derived statistics or transforms
-# clean_  data cleaning helpers
-# read_   custom data loaders
