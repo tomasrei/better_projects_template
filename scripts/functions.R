@@ -1,7 +1,6 @@
-library(S7)
-library(openxlsx)
 library(here)
 library(jsonlite)
+library(yaml)
 
 # ── Project-specific functions ────────────────────────────────────────────────
 
@@ -13,51 +12,51 @@ library(jsonlite)
 
 # ── Script registry ───────────────────────────────────────────────────────────
 
-ScriptMeta <- new_class("ScriptMeta",
-  properties = list(
-    name        = class_character,
-    data_source = class_character,
-    description = class_character,
-    updated     = class_character
-  )
-)
-
 f_register_script <- function(name, data_source, description) {
-  entry <- ScriptMeta(
-    name        = name,
-    data_source = data_source,
-    description = description,
-    updated     = format(Sys.time(), "%Y-%m-%d %H:%M")
-  )
-
-  registry_path <- here("_registry.xlsx")
+  registry_path <- here("_registry.yaml")
 
   if (file.exists(registry_path)) {
-    wb       <- loadWorkbook(registry_path)
-    registry <- readWorkbook(wb, sheet = "registry")
+    registry <- yaml::read_yaml(registry_path)
   } else {
-    wb       <- createWorkbook()
-    registry <- data.frame(
-      name        = character(),
-      data_source = character(),
-      description = character(),
-      updated     = character()
+    registry <- list(
+      `$version`    = "0.1.0",
+      `$learn_more` = "https://data-dict.tidyverse.org",
+      scripts       = list()
     )
   }
 
-  registry <- registry[registry$name != entry@name, ]
-  registry <- rbind(registry, data.frame(
-    name        = entry@name,
-    data_source = entry@data_source,
-    description = entry@description,
-    updated     = entry@updated
-  ))
-  registry <- registry[order(registry$name), ]
+  existing_outputs <- registry$scripts[[name]]$outputs
+  registry$scripts[[name]] <- list(
+    data_source = data_source,
+    description = description,
+    updated     = format(Sys.time(), "%Y-%m-%d %H:%M"),
+    outputs     = existing_outputs %||% list()
+  )
 
-  if ("registry" %in% names(wb)) removeWorksheet(wb, "registry")
-  addWorksheet(wb, "registry")
-  writeData(wb, "registry", registry)
-  saveWorkbook(wb, registry_path, overwrite = TRUE)
+  registry$scripts <- registry$scripts[order(names(registry$scripts))]
+  yaml::write_yaml(registry, registry_path)
+
+  options(.current_script_name = name)
+}
+
+f_register_output <- function(file) {
+  registry_path <- here("_registry.yaml")
+  script_name   <- getOption(".current_script_name")
+  if (is.null(script_name) || !file.exists(registry_path)) return(invisible(NULL))
+
+  root     <- here()
+  rel_file <- if (startsWith(file, root)) substring(file, nchar(root) + 2) else file
+
+  registry <- yaml::read_yaml(registry_path)
+  existing <- as.character(unlist(registry$scripts[[script_name]]$outputs %||% list()))
+  registry$scripts[[script_name]]$outputs <- sort(unique(c(existing, rel_file)))
+  yaml::write_yaml(registry, registry_path)
+  invisible(file)
+}
+
+f_record_output_file <- function(file) {
+  f_register_output(file)
+  file
 }
 
 # ── Inline stats for Typst ────────────────────────────────────────────────────

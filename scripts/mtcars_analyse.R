@@ -15,8 +15,9 @@ dat <- readRDS(here("data/clean/mtcars.rds"))
 
 # ── Plot ──────────────────────────────────────────────────────────────────────
 
-p <- ggplot(dat, aes(x = wt, y = mpg, colour = efficiency_class)) +
+ggplot(dat, aes(x = wt, y = mpg, colour = efficiency_class)) +
   geom_point(size = 2.5) +
+  #geom_smooth() +
   scale_colour_manual(values = c("High" = "#2166ac", "Low" = "#d6604d")) +
   labs(
     x      = "Weight (1000 lbs)",
@@ -25,10 +26,11 @@ p <- ggplot(dat, aes(x = wt, y = mpg, colour = efficiency_class)) +
   ) +
   theme_minimal(base_size = 11)
 
-print(p)
 
-ggsave(here("typst/plots/mtcars_mpg_weight.png"),
-       plot = p, width = 14, height = 9, units = "cm", dpi = 300, bg = "white")
+
+ggsave(
+  filename = f_record_output_file(here("typst/plots/mtcars_mpg_weight.png")),
+  width = 14, height = 9, units = "cm", dpi = 300, bg = "white")
 
 # ── Table ─────────────────────────────────────────────────────────────────────
 
@@ -46,13 +48,14 @@ tt(tab) |> print()
 
 tt(tab) |>
   save_tt(
-    here("typst/tables/mtcars_by_cyl.typ"), 
-  overwrite = TRUE
+    output = f_record_output_file(here("typst/tables/mtcars_by_cyl.typ")),
+    overwrite = TRUE
   )
 
 # ── Inline stats ──────────────────────────────────────────────────────────────
 
 n_total          <- nrow(dat)
+n_total <- n_total*3
 n_high_efficiency <- dat |> filter(efficiency_class == "High") |> nrow()
 
 f_write_stats(

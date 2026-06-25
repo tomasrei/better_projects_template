@@ -1,0 +1,16 @@
+$version: 0.1.0
+$learn_more: https://data-dict.tidyverse.org
+scripts:
+  mtcars_analyse.R:
+    data_source: data/clean/mtcars.rds
+    description: Plots MPG vs weight, summarises stats by cylinder, counts high-efficiency
+      cars
+    updated: 2026-06-25 10:16
+    outputs:
+    - typst/plots/mtcars_mpg_weight.png
+    - typst/tables/mtcars_by_cyl.typ
+  mtcars_clean.R:
+    data_source: mtcars (built-in R dataset)
+    description: Adds efficiency_class variable to mtcars and saves clean data
+    updated: 2026-06-25 10:16
+    outputs: data/clean/mtcars.rds

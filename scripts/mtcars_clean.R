@@ -18,4 +18,4 @@ mtcars_clean <- mtcars |>
   ) |>
   relocate(model)
 
-saveRDS(mtcars_clean, here("data/clean/mtcars.rds"))
+saveRDS(mtcars_clean, file = f_record_output_file(here("data/clean/mtcars.rds")))
