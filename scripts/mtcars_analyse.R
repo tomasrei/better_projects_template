@@ -2,14 +2,15 @@ library(here)
 library(dplyr)
 library(ggplot2)
 library(tinytable)
+library(tictoc)
 
 source(here("scripts/functions.R"))
 
 f_register_script(
-  name        = "mtcars_analyse.R",
   data_source = "data/clean/mtcars.rds",
   description = "Plots MPG vs weight, summarises stats by cylinder, counts high-efficiency cars"
 )
+tic(getOption(".current_script_name"))
 
 dat <- readRDS(here("data/clean/mtcars.rds"))
 
@@ -26,11 +27,10 @@ ggplot(dat, aes(x = wt, y = mpg, colour = efficiency_class)) +
   ) +
   theme_minimal(base_size = 11)
 
-
-
 ggsave(
   filename = f_record_output_file(here("typst/plots/mtcars_mpg_weight.png")),
-  width = 14, height = 9, units = "cm", dpi = 300, bg = "white")
+  width = 14, height = 9, units = "cm", dpi = 300, bg = "white"
+)
 
 # ── Table ─────────────────────────────────────────────────────────────────────
 
@@ -48,14 +48,13 @@ tt(tab) |> print()
 
 tt(tab) |>
   save_tt(
-    output = f_record_output_file(here("typst/tables/mtcars_by_cyl.typ")),
+    output    = f_record_output_file(here("typst/tables/mtcars_by_cyl.typ")),
     overwrite = TRUE
   )
 
 # ── Inline stats ──────────────────────────────────────────────────────────────
 
-n_total          <- nrow(dat)
-n_total <- n_total*3
+n_total           <- nrow(dat)
 n_high_efficiency <- dat |> filter(efficiency_class == "High") |> nrow()
 
 f_write_stats(
@@ -65,3 +64,5 @@ f_write_stats(
   ),
   namespace = "mtcars"
 )
+
+toc_min()

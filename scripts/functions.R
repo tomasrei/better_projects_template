@@ -19,11 +19,25 @@ f_order_registry_entry <- function(entry) {
 
 get_current_script_name <- function() {
   idx <- which(vapply(sys.calls(), \(x) deparse(x[[1]]) == "source", logical(1)))
-  if (length(idx) == 0) return(NULL)
-  basename(sys.frame(idx[length(idx)])$ofile)
+  if (length(idx) > 0) {
+    frame <- sys.frame(idx[length(idx)])
+    # Standard R sets $ofile; RStudio/ark sets $file instead
+    path <- if (is.character(frame$ofile)) frame$ofile else if (is.character(frame$file)) frame$file else NULL
+    if (!is.null(path) && nzchar(path)) return(basename(path))
+  }
+  # Fallback for interactive RStudio use (no source() in call stack)
+  if (requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable()) {
+    path <- tryCatch(rstudioapi::getSourceEditorContext()$path, error = function(e) NULL)
+    if (is.character(path) && nzchar(path)) return(basename(path))
+  }
+  NULL
 }
 
 f_register_script <- function(name = get_current_script_name(), data_source, description) {
+  if (is.null(name)) {
+    message("f_register_script: could not detect script name; run via source() or pass name= explicitly")
+    return(invisible(NULL))
+  }
   registry_path <- here("_registry.yaml")
 
   if (file.exists(registry_path)) {
@@ -97,7 +111,7 @@ toc_min <- function(...) {
   }, ...)
 
   registry_path <- here("_registry.yaml")
-  if (file.exists(registry_path) && !is.null(result$msg)) {
+  if (file.exists(registry_path) && !is.null(result$msg) && nzchar(result$msg)) {
     registry <- yaml::read_yaml(registry_path)
     if (!is.null(registry$scripts[[result$msg]])) {
       elapsed_mins <- round((result$toc - result$tic) / 60, 1)
