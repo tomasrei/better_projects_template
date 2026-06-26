@@ -9,6 +9,8 @@ the document almost instantly because it only reads pre-generated plots and tabl
 
 https://data-dict.tidyverse.org (Talk here: https://youtu.be/jVqArueBFqA?si=6uI_RUpZF9ws83WG)
 
+- `f_record_output_file()` is currently only tested with `ggsave` and `save_kable`. Need to audit other common save functions (e.g. `tinytable::save_tt()`, `gt::gtsave()`, `flextable::save_as_docx()`, `write.csv()`, `openxlsx::saveWorkbook()`) and confirm the wrapper pattern works. **The design goal is that `f_record_output_file()` should be pluggable into any save function in the R universe — not just the author's preferred packages.**
+
 ## Folder layout
 
 ```

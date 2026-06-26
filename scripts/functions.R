@@ -33,7 +33,7 @@ get_current_script_name <- function() {
   NULL
 }
 
-f_register_script <- function(name = get_current_script_name(), data_source, description, pin_to_top = FALSE) {
+f_register_script <- function(name = get_current_script_name(), data_source, description, pin_to_top = FALSE, record_runtime = TRUE) {
   if (is.null(name)) {
     message("f_register_script: could not detect script name; run via source() or pass name= explicitly")
     return(invisible(NULL))
@@ -66,6 +66,28 @@ f_register_script <- function(name = get_current_script_name(), data_source, des
   yaml::write_yaml(registry, registry_path)
 
   options(.current_script_name = name)
+
+  if (record_runtime) {
+    .start    <- Sys.time()
+    .name     <- name
+    .reg_path <- registry_path
+    .order_fn <- f_order_registry_entry
+    idx <- which(vapply(sys.calls(), \(x) deparse(x[[1]]) == "source", logical(1)))
+    if (length(idx) > 0) {
+      eval(bquote(on.exit({
+        .elapsed <- round(as.numeric(difftime(Sys.time(), .(.start), units = "mins")), 1)
+        if (file.exists(.(.reg_path))) {
+          .reg <- yaml::read_yaml(.(.reg_path))
+          if (!is.null(.reg$scripts[[.(.name)]])) {
+            .reg$scripts[[.(.name)]]$script_runtime <- paste0(.elapsed, " min")
+            .reg$scripts <- lapply(.reg$scripts, .(.order_fn))
+            yaml::write_yaml(.reg, .(.reg_path))
+            message(.(.name), ": ", .elapsed, " min elapsed")
+          }
+        }
+      }, add = TRUE, after = TRUE)), envir = sys.frame(idx[length(idx)]))
+    }
+  }
 }
 
 f_register_output <- function(file) {
@@ -102,28 +124,6 @@ f_register_output <- function(file) {
 f_record_output_file <- function(file) {
   f_register_output(file)
   file
-}
-
-# ── Timing ────────────────────────────────────────────────────────────────────
-
-toc_min <- function(...) {
-  result <- toc(func.toc = function(tic, toc, msg) {
-    mins <- (toc - tic) / 60
-    paste0(msg, ": ", round(mins, 1), " min elapsed")
-  }, ...)
-
-  registry_path <- here("_registry.yaml")
-  if (file.exists(registry_path) && !is.null(result$msg) && nzchar(result$msg)) {
-    registry <- yaml::read_yaml(registry_path)
-    if (!is.null(registry$scripts[[result$msg]])) {
-      elapsed_mins <- round((result$toc - result$tic) / 60, 1)
-      registry$scripts[[result$msg]]$script_runtime <- paste0(elapsed_mins, " min")
-      registry$scripts <- lapply(registry$scripts, f_order_registry_entry)
-      yaml::write_yaml(registry, registry_path)
-    }
-  }
-
-  invisible(result)
 }
 
 f_aggregate_main_stats <- function() {

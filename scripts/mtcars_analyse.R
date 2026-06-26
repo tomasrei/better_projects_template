@@ -2,7 +2,6 @@ library(here)
 library(dplyr)
 library(ggplot2)
 library(tinytable)
-library(tictoc)
 
 source(here("scripts/functions.R"))
 
@@ -10,7 +9,6 @@ f_register_script(
   data_source = "data/clean/mtcars.rds",
   description = "Plots MPG vs weight, summarises stats by cylinder, counts high-efficiency cars"
 )
-tic(getOption(".current_script_name"))
 
 dat <- readRDS(here("data/clean/mtcars.rds"))
 
@@ -64,5 +62,3 @@ f_write_stats(
   ),
   namespace = "mtcars"
 )
-
-toc_min()
