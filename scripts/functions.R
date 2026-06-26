@@ -33,7 +33,7 @@ get_current_script_name <- function() {
   NULL
 }
 
-f_register_script <- function(name = get_current_script_name(), data_source, description) {
+f_register_script <- function(name = get_current_script_name(), data_source, description, pin_to_top = FALSE) {
   if (is.null(name)) {
     message("f_register_script: could not detect script name; run via source() or pass name= explicitly")
     return(invisible(NULL))
@@ -50,17 +50,19 @@ f_register_script <- function(name = get_current_script_name(), data_source, des
     )
   }
 
-  registry$scripts[[name]] <- list(
+  entry <- list(
     data_source = data_source,
     description = description,
     updated     = format(Sys.time(), "%Y-%m-%d %H:%M"),
     outputs     = "none"
   )
+  if (pin_to_top) entry$pin_to_top <- TRUE
+  registry$scripts[[name]] <- entry
 
-  all_names        <- names(registry$scripts)
-  pipeline         <- all_names[all_names == "main.R — full pipeline"]
-  rest             <- sort(all_names[all_names != "main.R — full pipeline"])
-  registry$scripts <- lapply(registry$scripts[c(pipeline, rest)], f_order_registry_entry)
+  all_names <- names(registry$scripts)
+  pinned    <- all_names[vapply(registry$scripts[all_names], \(s) isTRUE(s$pin_to_top), logical(1))]
+  rest      <- sort(all_names[!all_names %in% pinned])
+  registry$scripts <- lapply(registry$scripts[c(pinned, rest)], f_order_registry_entry)
   yaml::write_yaml(registry, registry_path)
 
   options(.current_script_name = name)

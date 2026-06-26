@@ -6,7 +6,8 @@ source(here("scripts/functions.R"))
 f_register_script(
   name        = "main.R — full pipeline",
   data_source = "all",
-  description = "Full pipeline: clean + analyse mtcars"
+  description = "Full pipeline: clean + analyse mtcars",
+  pin_to_top  = TRUE
 )
 tic("main.R — full pipeline")
 
