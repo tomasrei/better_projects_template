@@ -5,7 +5,7 @@ scripts:
     data_source: data/clean/mtcars.rds
     description: Plots MPG vs weight, summarises stats by cylinder, counts high-efficiency
       cars
-    updated: 2026-06-25 10:16
+    updated: 2026-06-25 10:55
     outputs:
     - typst/plots/mtcars_mpg_weight.png
     - typst/tables/mtcars_by_cyl.typ

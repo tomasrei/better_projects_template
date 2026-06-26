@@ -17,7 +17,7 @@ dat <- readRDS(here("data/clean/mtcars.rds"))
 
 ggplot(dat, aes(x = wt, y = mpg, colour = efficiency_class)) +
   geom_point(size = 2.5) +
-  #geom_smooth() +
+  geom_smooth(method = "lm", se = TRUE) +
   scale_colour_manual(values = c("High" = "#2166ac", "Low" = "#d6604d")) +
   labs(
     x      = "Weight (1000 lbs)",
