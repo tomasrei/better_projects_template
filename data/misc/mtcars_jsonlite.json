@@ -1,0 +1,23 @@
+[
+  {
+    "Cylinders": 4,
+    "Mean MPG": 26.7,
+    "Mean HP": 83,
+    "Mean weight": 2.29,
+    "N": 11
+  },
+  {
+    "Cylinders": 6,
+    "Mean MPG": 19.7,
+    "Mean HP": 122,
+    "Mean weight": 3.12,
+    "N": 7
+  },
+  {
+    "Cylinders": 8,
+    "Mean MPG": 15.1,
+    "Mean HP": 209,
+    "Mean weight": 4,
+    "N": 14
+  }
+]

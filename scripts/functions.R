@@ -1,6 +1,9 @@
+if (!requireNamespace("pak", quietly = TRUE)) install.packages("pak")
+if (!requireNamespace("tinytrail", quietly = TRUE)) pak::pak("local::/Users/tomas/Documents/R_Work/tinytrail")
+
 library(here)
 library(jsonlite)
-library(yaml)
+library(tinytrail)
 
 # ── Project-specific functions ────────────────────────────────────────────────
 
@@ -10,135 +13,19 @@ library(yaml)
 # clean_  data cleaning helpers
 # read_   custom data loaders
 
-# ── Script registry ───────────────────────────────────────────────────────────
-
-f_order_registry_entry <- function(entry) {
-  key_order <- c("data_source", "description", "updated", "script_runtime", "n_plots", "n_tables", "outputs")
-  entry[c(intersect(key_order, names(entry)), setdiff(names(entry), key_order))]
-}
-
-get_current_script_name <- function() {
-  idx <- which(vapply(sys.calls(), \(x) deparse(x[[1]]) == "source", logical(1)))
-  if (length(idx) > 0) {
-    frame <- sys.frame(idx[length(idx)])
-    # Standard R sets $ofile; RStudio/ark sets $file instead
-    path <- if (is.character(frame$ofile)) frame$ofile else if (is.character(frame$file)) frame$file else NULL
-    if (!is.null(path) && nzchar(path)) return(basename(path))
-  }
-  # Fallback for interactive RStudio use (no source() in call stack)
-  if (requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable()) {
-    path <- tryCatch(rstudioapi::getSourceEditorContext()$path, error = function(e) NULL)
-    if (is.character(path) && nzchar(path)) return(basename(path))
-  }
-  NULL
-}
-
-f_register_script <- function(name = get_current_script_name(), data_source, description, pin_to_top = FALSE, record_runtime = TRUE) {
-  if (is.null(name)) {
-    message("f_register_script: could not detect script name; run via source() or pass name= explicitly")
-    return(invisible(NULL))
-  }
-  registry_path <- here("_registry.yaml")
-
-  if (file.exists(registry_path)) {
-    registry <- yaml::read_yaml(registry_path)
-  } else {
-    registry <- list(
-      `$version`    = "0.1.0",
-      `$learn_more` = "https://data-dict.tidyverse.org",
-      scripts       = list()
-    )
-  }
-
-  entry <- list(
-    data_source = data_source,
-    description = description,
-    updated     = format(Sys.time(), "%Y-%m-%d %H:%M"),
-    outputs     = "none"
-  )
-  if (pin_to_top) entry$pin_to_top <- TRUE
-  registry$scripts[[name]] <- entry
-
-  all_names <- names(registry$scripts)
-  pinned    <- all_names[vapply(registry$scripts[all_names], \(s) isTRUE(s$pin_to_top), logical(1))]
-  rest      <- sort(all_names[!all_names %in% pinned])
-  registry$scripts <- lapply(registry$scripts[c(pinned, rest)], f_order_registry_entry)
-  yaml::write_yaml(registry, registry_path)
-
-  options(.current_script_name = name)
-
-  if (record_runtime) {
-    .start    <- Sys.time()
-    .name     <- name
-    .reg_path <- registry_path
-    .order_fn <- f_order_registry_entry
-    idx <- which(vapply(sys.calls(), \(x) deparse(x[[1]]) == "source", logical(1)))
-    if (length(idx) > 0) {
-      eval(bquote(on.exit({
-        .elapsed <- round(as.numeric(difftime(Sys.time(), .(.start), units = "mins")), 1)
-        if (file.exists(.(.reg_path))) {
-          .reg <- yaml::read_yaml(.(.reg_path))
-          if (!is.null(.reg$scripts[[.(.name)]])) {
-            .reg$scripts[[.(.name)]]$script_runtime <- paste0(.elapsed, " min")
-            .reg$scripts <- lapply(.reg$scripts, .(.order_fn))
-            yaml::write_yaml(.reg, .(.reg_path))
-            message(.(.name), ": ", .elapsed, " min elapsed")
-          }
-        }
-      }, add = TRUE, after = TRUE)), envir = sys.frame(idx[length(idx)]))
-    }
-  }
-}
-
-f_register_output <- function(file) {
-  registry_path <- here("_registry.yaml")
-  script_name   <- getOption(".current_script_name")
-  if (is.null(script_name) || !file.exists(registry_path)) return(invisible(NULL))
-
-  root     <- here()
-  rel_file <- if (startsWith(file, root)) substring(file, nchar(root) + 2) else file
-
-  registry     <- yaml::read_yaml(registry_path)
-  existing_raw <- registry$scripts[[script_name]]$outputs %||% list()
-  existing <- if (identical(existing_raw, "none") || length(existing_raw) == 0) {
-    character(0)
-  } else {
-    as.character(unlist(existing_raw))
-  }
-  all_out <- unique(c(existing, rel_file))
-  outputs <- all_out[order(dirname(all_out),
-                           startsWith(basename(all_out), "sensitivity_"),
-                           basename(all_out))]
-  registry$scripts[[script_name]]$outputs  <- outputs
-  registry$scripts[[script_name]]$n_plots  <- sum(grepl("\\.png$", outputs))
-  registry$scripts[[script_name]]$n_tables <- sum(grepl("\\.tex$", outputs))
-  registry$scripts <- lapply(registry$scripts, f_order_registry_entry)
-  yaml::write_yaml(registry, registry_path)
-  invisible(file)
-}
-
-# Wrap the filename/file argument of any save call to auto-register the output.
-# Usage:
-#   ggsave(filename = f_record_output_file("plot.png"), path = here("plots"), ...)
-#   save_kable(kbl, file = f_record_output_file(here("tables", "table.tex")))
-f_record_output_file <- function(file) {
-  f_register_output(file)
-  file
-}
-
 f_aggregate_main_stats <- function() {
-  registry_path <- here("_registry.yaml")
+  registry_path <- here("_tinytrail_proj.yaml")
   if (!file.exists(registry_path)) return(invisible(NULL))
 
   registry      <- yaml::read_yaml(registry_path)
-  child_scripts <- registry$scripts[names(registry$scripts) != "main.R — full pipeline"]
+  child_scripts <- registry$scripts[names(registry$scripts) != "main.R"]
 
-  registry$scripts[["main.R — full pipeline"]]$n_plots  <-
-    sum(sapply(child_scripts, function(s) s$n_plots  %||% 0))
-  registry$scripts[["main.R — full pipeline"]]$n_tables <-
-    sum(sapply(child_scripts, function(s) s$n_tables %||% 0))
+  registry$scripts[["main.R"]]$n_files <-
+    sum(sapply(child_scripts, function(s) if (is.null(s$n_files)) 0L else s$n_files))
 
-  registry$scripts <- lapply(registry$scripts, f_order_registry_entry)
+  key_order <- c("data_source", "description", "first_run", "latest_run", "script_runtime", "n_files", "outputs")
+  order_entry <- function(e) e[c(intersect(key_order, names(e)), setdiff(names(e), key_order))]
+  registry$scripts <- lapply(registry$scripts, order_entry)
   yaml::write_yaml(registry, registry_path)
   invisible(NULL)
 }

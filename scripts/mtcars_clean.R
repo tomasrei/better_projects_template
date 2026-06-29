@@ -3,18 +3,21 @@ library(dplyr)
 
 source(here("scripts/functions.R"))
 
-f_register_script(
-  data_source = "mtcars (built-in R dataset)",
-  description = "Adds efficiency_class variable to mtcars and saves clean data"
+
+
+tinytrail(
+  description = "Adds efficiency_class variable to mtcars and saves clean data",
+  data_source = "mtcars (built-in R dataset)"
 )
 
 # ── Clean ─────────────────────────────────────────────────────────────────────
 
 mtcars_clean <- mtcars |>
+  tinytrail_dict("mtcars_raw") |>
   mutate(
     model            = rownames(mtcars),
     efficiency_class = if_else(mpg > 20, "High", "Low")
   ) |>
   relocate(model)
 
-saveRDS(mtcars_clean, file = f_record_output_file(here("data/clean/mtcars.rds")))
+saveRDS(mtcars_clean, file = tinytrail_write(here("data/clean/mtcars.rds")))
