@@ -1,10 +1,9 @@
 scripts:
-  simple_main_github.R:
-    description: 'Smoke test: GitHub install, auto hooks, extra_hooks, and explicit
-      tinytrail_write()'
+  main.R:
+    description: 'Template: mtcars cleaning, plot, and table'
     data_source: mtcars (built-in R dataset)
-    first_run: 2026-06-29 09:11
-    latest_run: 2026-06-29 12:54
+    first_run: 2026-06-30 10:21
+    latest_run: 2026-06-30 10:21
     script_runtime: 0.0 min
     n_outputs: 3
     outputs:
@@ -12,19 +11,19 @@ scripts:
     - typst/plots/simple_mtcars.png
     - typst/tables/simple_mtcars.typ
 data_dictionary:
-  simple_main_github.R:
+  main.R:
     dat:
       columns:
-        'mpg': [21, 21, 22.8, 21.4, 18.7]
-        'cyl': [6, 6, 4, 6, 8]
-        'disp': [160, 160, 108, 258, 360]
-        'hp': [110, 110, 93, 110, 175]
-        'drat': [3.9, 3.9, 3.85, 3.08, 3.15]
-        'wt': [2.62, 2.875, 2.32, 3.215, 3.44]
-        'qsec': [16.46, 17.02, 18.61, 19.44, 17.02]
-        'vs': [0, 0, 1, 1, 0]
-        'am': [1, 1, 1, 0, 0]
-        'gear': [4, 4, 4, 3, 3]
-        'carb': [4, 4, 1, 1, 2]
-        'efficiency_class': ['High', 'High', 'High', 'High', 'Low']
-        'model': ['Mazda RX4', 'Mazda RX4 Wag', 'Datsun 710', 'Hornet 4 Drive', 'Hornet Sportabout']
+        'mpg': [22.8, 14.3, 26, 15, 33.9]
+        'cyl': [8, 8, 4, 8, 8]
+        'disp': [108, 460, 360, 160, 78.7]
+        'hp': [66, 245, 180, 123, 93]
+        'drat': [3.15, 4.43, 4.11, 2.76, 4.08]
+        'wt': [2.78, 3.17, 1.835, 3.57, 5.345]
+        'qsec': [20.22, 19.44, 16.46, 18.9, 17.42]
+        'vs': [1, 0, 0, 1, 0]
+        'am': [0, 1, 0, 1, 0]
+        'gear': [3, 5, 4, 3, 3]
+        'carb': [4, 2, 4, 8, 1]
+        'efficiency_class': ['Low', 'Low', 'Low', 'High', 'Low']
+        'model': ['Lotus Europa', 'Fiat 128', 'Maserati Bora', 'Merc 240D', 'Merc 450SLC']
