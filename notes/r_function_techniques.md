@@ -151,3 +151,5 @@ analyze_patient <- function(patient) {
 - Add or remove fields in the class definition without touching every call site.
 - Access fields with `@` (e.g., `patient@name`).
 - Computed properties (like `bmi` above) are defined inline via `getter`.
+
+

@@ -1,6 +1,6 @@
 data/raw/
 data/clean/
-_registry.xlsx
+_tinytrail.yaml
 typst/data.json
 typst/plots/
 typst/tables/
