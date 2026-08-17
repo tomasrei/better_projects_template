@@ -2,6 +2,7 @@ data/raw/
 data/clean/
 _tinytrail.yaml
 *.pdf
+LICENSE
 typst/data.json
 typst/plots/
 typst/tables/
