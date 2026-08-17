@@ -1,6 +1,7 @@
 data/raw/
 data/clean/
 _tinytrail.yaml
+*.pdf
 typst/data.json
 typst/plots/
 typst/tables/
