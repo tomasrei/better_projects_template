@@ -1,5 +1,7 @@
-data/raw/
-data/clean/
+data/*
+!data/*/
+data/*/*
+!data/*/.gitkeep
 _tinytrail.yaml
 *.pdf
 LICENSE
