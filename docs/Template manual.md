@@ -1,6 +1,8 @@
 # Read first
 
-Note that notes/r_function_techniques.md has notes on how to write functions. Will maybe rename that file later when it includes general code guidelines/praxis.
+- `docs/template_overview.pdf` is the visual first look at the workflow. Start there.
+- This file is the manual: conventions, how to run things, and why.
+- `docs/How to write a function.md` has notes on how to write functions. Will maybe rename that file later when it includes general code guidelines/praxis.
 
 
 
@@ -27,7 +29,11 @@ project/
 │   ├── tables/         ← R writes tables here (CSV or Typst snippets)
 │   └── data.json       ← R writes computed inline stats here (jsonlite)
 ├── typst/
-│   └── main.typ        ← reads from output/, compiled with --root .
+│   └── main.typ        ← the text; reads from output/
+├── docs/
+│   ├── template_overview.typ / .pdf   ← visual overview of the workflow
+│   ├── Template manual.md             ← this file
+│   └── How to write a function.md
 └── _tinytrail.yaml     ← auto-updated when any script runs
 ```
 
@@ -71,6 +77,7 @@ regenerate everything else.
 | `scripts/` | code is always committed |
 | `typst/main.typ` | the document is always committed |
 | `data/misc/` | crosswalks and reference files are inputs, not outputs |
+| `docs/` | the manual and the overview source (the PDF itself is ignored, like all PDFs) |
 
 ---
 
@@ -213,8 +220,14 @@ on the next compile (or live-reload if using `typst watch`). Plots and tables
 live outside `typst/` so they can also be used elsewhere (slides, Word, a
 Quarto doc) without the report owning them.
 
-Typst only reads files inside its *root*, which defaults to the folder of
-`main.typ`. Compile from the project root with `--root .`:
+Typst only reads files inside its *root*. `main.typ` lives in `typst/` but reads
+`output/`, so the root has to be the project folder:
+
+- **Positron / VS Code (the normal way):** open the project folder itself (not a
+  parent folder, not `typst/`). The Tinymist extension then uses that folder as
+  the root, and the preview and the export button just work. No settings needed.
+- **Terminal (fallback):** the `typst` command defaults the root to the folder of
+  `main.typ`, so pass `--root .` and run it from the project folder:
 
 ```sh
 typst watch --root . typst/main.typ
@@ -231,11 +244,45 @@ write.csv(tab, here("output/tables/descriptives.csv"), row.names = FALSE)
 In `main.typ`, define the paths at the top for easy adjustment:
 
 ```typst
-#let plots  = "/output/plots/"    // "/" = relative to --root
+#let plots  = "/output/plots/"    // leading "/" = from the project root
 #let tables = "/output/tables/"
 
 #image(plots + "age_distribution.png")
 ```
+
+---
+
+## How to run
+
+```sh
+Rscript scripts/occupation_clean.R            # only when the cleaning changes
+Rscript scripts/occupation_analyse_wages.R    # each time the analysis changes
+```
+
+Then preview / export `typst/main.typ` in Positron or VS Code (see "Typst
+workflow"). Scripts use `here()`, so they work from any working directory
+inside the project.
+
+---
+
+## Adding a new dataset
+
+1. Put the original file(s) in `data/raw/{dataset}/` or `data/raw/`.
+2. Create `scripts/{dataset}_clean.R`: `source(here("scripts/functions.R"))`,
+   read raw, clean, `saveRDS(…, here("data/clean/{dataset}.rds"))`.
+3. Create `scripts/{dataset}_analyse_{topic}.R`: `readRDS()` the clean file,
+   `ggsave()` to `output/plots/`, save tables to `output/tables/`, merge numbers
+   into `output/data.json` under a `{dataset}` key.
+4. Reference them in `main.typ`: `#image(plots + "…")`, `#include(tables + "…")`,
+   `#data.{dataset}.n_total`.
+
+---
+
+## Requirements
+
+R with `here`, `jsonlite`, `ggplot2`, `tinytable` and `tinytrail`
+(`pak::pak("tinytrail-r/tinytrail")`). For the document: Positron or VS Code
+with the Tinymist extension (or the `typst` command line tool).
 
 ---
 
@@ -265,6 +312,10 @@ library(patchwork)
 # Advanced
 
 ## Targets package
+
+The `targets` package can replace the "remember to run clean before analyse"
+rule with a pipeline that knows the dependencies and only re-runs what changed.
+It is not part of the template yet.
 
 [text](https://youtu.be/U-kD2BHZfrM?si=oO1aWk5aS96NcY4v)
 
