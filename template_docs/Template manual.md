@@ -19,7 +19,7 @@ project/
 ├── data/
 │   ├── raw/            ← original data, never modified
 │   ├── clean/          ← RDS files written by *_clean.R scripts
-│   └── misc/           ← metadata.xlsx: crosswalks, lookups (read only)
+│   └── misc/           ← workbook.xlsx: hand-edited Excel file (read only)
 ├── scripts/
 │   ├── functions.R     ← project-specific custom functions
 │   ├── occupation_clean.R
@@ -167,7 +167,9 @@ Examples: `f_plot_age_dist()`, `f_tab_descriptives()`, `f_calc_attrition_rate()`
 ## Misc / reference files
 
 Store crosswalks, lookups, and small reference datasets in `data/misc/`, by
-default as sheets in `data/misc/metadata.xlsx`.
+default as sheets in `data/misc/workbook.xlsx`: a flexible Excel file for
+everything small that is collected or kept by hand (small data collections,
+metadata, lookups, crosswalks), one sheet each, often edited manually.
 R reads these with `readxl::read_excel()`. R never writes to these files.
 Each Excel file can contain multiple sheets.
 

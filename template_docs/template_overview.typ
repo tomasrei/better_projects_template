@@ -14,10 +14,10 @@
 //   plots + tables + data.json -> typst/main.typ [src] --compile--> main.pdf [out]
 //     (the outputs are read by main.typ, so arrows point at the .typ, not the PDF)
 //   page 1: ONE combined figure. A frame around everything = the project folder;
-//     no inner folder frames (Tomas disliked them), each caption gives the path. Rows: Metadata (data/misc/metadata.xlsx) + Functions
+//     no inner folder frames (Tomas disliked them), each caption gives the path. Rows: Workbook (data/misc/workbook.xlsx) + Functions
 //     (scripts/) read only -> main chain raw -> clean -> clean data -> analyse ->
 //     output/ (plots/, tables/, data.json) -> typst/ (main.typ -> main.pdf).
-//     Metadata -> Analyse dotted line left out (no room without crossing Functions).
+//     Workbook stands alone, no arrows.
 //   page 2: folder tree + "Good to know" box (moved from the old full-chain page).
 //   every script run -> _tinytrail.yaml [gen] (box note + tree only, not in diagrams)
 //
@@ -41,13 +41,14 @@
 //     captions (data/raw/, scripts/*_clean.R, ...). No dashed frames around items
 //     inside the project frame; only the project frame itself.
 //   - 2026-10-21: no colour key (edit/run/generated...) under the page 1 figure.
-//     The lookups file is data/misc/metadata.xlsx, labelled "Metadata".
+//     The hand-edited Excel file is data/misc/workbook.xlsx, labelled "Workbook";
+//     the page 1 footnote describes its use.
 //   - 2026-10-21: no edit/run/generated badges in the folder tree either.
 //   - 2026-10-21: Plots/Tables use stacked-file icons (PNG/TYP), not folder icons,
 //     so the arrows from Analyse land on the icon (a folder's tab left a gap).
 //     outset: 0pt on Plots/Tables/Numbers/Text so arrowheads touch the icons.
-//   - 2026-10-21: Numbers uses a local JSON icon (page with a JSON snippet: n, mean,
-//     sd, min, max, year) instead of the page + "JSON" tag.
+//   - 2026-10-21: Numbers uses a local JSON icon: a stack of three pages with a JSON
+//     snippet (n, mean, sd, min, max, year) on the front, font as large as fits.
 //   - 2026-10-21: compiling is done with the Positron/VS Code preview + export button
 //     (project folder opened as workspace); typst watch --root . only as a fallback.
 // ==============================================================
@@ -74,37 +75,42 @@
     #text(size: 7.5pt, weight: "bold", fill: muted, raw(label))]),
 )
 
-// JSON icon: a page with a small JSON snippet (flowlib has no JSON icon).
-// raw() keeps the quotes straight. Same size as fc-icon-doc.
-#let icon-json(w: 1.6cm, h: 2.05cm, color: brand) = box(width: w, height: h)[
+// JSON icon: a stack of three pages (like fc-icon-docs) with a JSON snippet on
+// the front page (flowlib has no JSON icon). raw() keeps the quotes straight.
+// No indentation inside the braces, so the font can be as large as possible.
+#let json-page(w, h, color) = box(width: w, height: h)[
   #place(top+left, rect(width: w, height: h, radius: 3pt, fill: white, stroke: 1.1pt + color))
-  #place(top+left, dx: w * 0.1, dy: h * 0.07, {
-    set text(fill: color, size: 4.8pt)
-    set par(leading: 0.42em)
-    raw("{\n \"n\": 32,\n \"mean\": 4.1,\n \"sd\": 1.2,\n \"min\": 1.5,\n \"max\": 7.9,\n \"year\": 2024\n}")
+  #place(top+left, dx: w * 0.08, dy: h * 0.05, {
+    set text(fill: color, size: 6.8pt)
+    set par(leading: 0.32em)
+    raw("{\n\"n\": 32,\n\"mean\": 4.1,\n\"sd\": 1.2,\n\"min\": 1.5,\n\"max\": 7.9,\n\"year\": 2024\n}")
   })
+]
+#let icon-json(w: 1.6cm, h: 2.05cm, color: brand) = box(width: w + 6pt, height: h + 6pt)[
+  #place(top+left, dx: 6pt, rect(width: w, height: h, radius: 3pt, fill: white, stroke: 0.8pt + color))
+  #place(top+left, dx: 3pt, dy: 3pt, rect(width: w, height: h, radius: 3pt, fill: white, stroke: 0.8pt + color))
+  #place(top+left, dy: 6pt, json-page(w, h, color))
 ]
 
 // Combined figure (candidate to replace both the old overview and the full chain).
 // Rows: lookups + functions.R (read only) on top, the main data -> script chain,
 // then output/ and typst/. Dotted lines = read only.
-#align(center, scale(80%, reflow: true, fc-diagram(
+#align(center, scale(76%, reflow: true, fc-diagram(
   spacing: (1.4cm, 1.3cm),
-  fc-file((0, 0), [Metadata], sub: [`data/misc/metadata.xlsx`], icon: fc-icon-sheet, name: <misc>),
+  fc-file((0, 0), [Workbook], sub: [`data/misc/workbook.xlsx`], icon: fc-icon-sheet, name: <misc>),
   fc-file((2, 0), [Functions], sub: [`scripts/functions.R`], icon: fc-icon-doc.with(tag: "R"), name: <fn>),
   fc-file((0, 1), [Raw data], sub: [`data/raw/`], icon: fc-icon-folder, kind: "ext", name: <raw>),
   fc-file((1, 1), [Clean], sub: [`scripts/*_clean.R`], icon: fc-icon-doc.with(tag: "R"), kind: "run", name: <clean>),
-  fc-file((2, 1), [Clean data], sub: [`data/clean/`], icon: fc-icon-folder, kind: "gen", name: <rds>),
+  fc-file((2, 1), [Clean data], sub: [`data/clean/`], icon: fc-icon-folder, name: <rds>),
   fc-file((3, 1), [Analyse], sub: [`scripts/*_analyse_*.R`], icon: fc-icon-doc.with(tag: "R"), kind: "run", name: <analyse>),
-  fc-file((1, 2), [Plots], sub: box(inset: (bottom: 4pt))[`output/plots/`], icon: fc-icon-docs.with(tag: "PNG"), kind: "gen", name: <plots>, outset: 0pt),
-  fc-file((2, 2), [Tables], sub: box(inset: (bottom: 4pt))[`output/tables/`], icon: fc-icon-docs.with(tag: "TYP"), kind: "gen", name: <tables>, outset: 0pt),
-  fc-file((3, 2), [Numbers], sub: box(inset: (bottom: 4pt))[`output/data.json`], icon: icon-json, kind: "gen", name: <json>, outset: 0pt),
+  fc-file((1, 2), [Plots], sub: box(inset: (bottom: 4pt))[`output/plots/`], icon: fc-icon-docs.with(tag: "PNG"), name: <plots>, outset: 0pt),
+  fc-file((2, 2), [Tables], sub: box(inset: (bottom: 4pt))[`output/tables/`], icon: fc-icon-docs.with(tag: "TYP"), name: <tables>, outset: 0pt),
+  fc-file((3, 2), [Numbers], sub: box(inset: (bottom: 4pt))[`output/data.json`], icon: icon-json, name: <json>, outset: 0pt),
   fc-file((2, 3), [Text], sub: [`typst/main.typ`], icon: fc-icon-doc.with(tag: "TYP"), name: <typ>, outset: 0pt),
   fc-file((3, 3), [Report], sub: [`typst/main.pdf`], icon: fc-icon-doc.with(tag: "PDF"), kind: "out", name: <pdf>),
 
-  // read-only inputs: lookups and functions.R both feed down into Clean (shared
-  // trunk); functions.R also feeds Analyse
-  fc-reads(<misc>, (1, 0), <clean>),
+  // read-only input: functions.R is sourced by both scripts. Workbook stands
+  // alone, without arrows.
   fc-reads(<fn>, (1, 0), <clean>),
   fc-reads(<fn>, (3, 0), <analyse>),
 
@@ -129,7 +135,7 @@
 
 #fc-steps(
   ([Add data], [Put the original files in `data/raw/` and never touch them again.
-    Lookups and crosswalks go in `data/misc/metadata.xlsx`.]),
+    Small hand-made data go in `data/misc/workbook.xlsx`.]),
   ([Clean], [Write and run `{dataset}_clean.R`. It saves one
     `data/clean/{dataset}.rds` and does nothing else.]),
   ([Analyse], [Run `{dataset}_analyse_{topic}.R`. It reads the `.rds` and writes
@@ -142,11 +148,13 @@
 #v(0.4cm)
 #line(length: 100%, stroke: 0.5pt + border)
 #text(size: 9pt, fill: gray.darken(20%))[
-  *Script names:* `{dataset}_{role}.R`, e.g. `cars_clean.R` and `cars_analyse_weight.R`.
-  The `*` in the figure stands for the dataset name. Because the dataset comes first, all
-  scripts for one dataset sit next to each other in the file list. No number prefixes
-  (`01_`, `02_`): the role says the order (clean before analyse). Alphabetically,
-  `analyse` lands above `clean`, but the group stays together.
+  *Script names:* `{dataset}_{role}.R`, e.g. `cars_clean.R`, `cars_analyse_weight.R`; the `*`
+  in the figure is the dataset name. Dataset first, so a dataset's scripts sit together in
+  the file list; the role gives the order, so no `01_` prefixes. \
+  *Numbers* (`output/data.json`): values used inline in the text, e.g. "32 cars". R writes
+  them, `main.typ` reads them with `json()`, so the text always matches the analysis. \
+  *Workbook* (`data/misc/workbook.xlsx`): a flexible Excel file, often edited by hand, for small
+  data collections, metadata, lookups and crosswalks, one sheet each. R only reads it.
 ]
 
 #pagebreak()
@@ -171,7 +179,7 @@
   (name: "data/", kind: "dir", note: [All data. Contents git-ignored; `.gitkeep` keeps the empty folders.]),
   (name: "raw/", depth: 1, kind: "ext", note: [Original data as received. *Never modified.* Often too sensitive or large for GitHub.]),
   (name: "clean/", depth: 1, kind: "gen", note: [One `.rds` per dataset, written by its clean script.]),
-  (name: "misc/", depth: 1, kind: "src", note: [`metadata.xlsx`: crosswalks, lookups (one sheet each). R reads, never writes.]),
+  (name: "misc/", depth: 1, kind: "src", note: [`workbook.xlsx`: hand-edited Excel file, one sheet per thing. R only reads it.]),
   (name: "scripts/", kind: "dir", note: [All code. Always committed.]),
   (name: "functions.R", depth: 1, kind: "src", note: [Project functions (`f_` prefix). Every script sources it at the top.]),
   (name: "{dataset}_clean.R", depth: 1, kind: "run", note: [One per dataset. Raw → `data/clean/`. Nothing downstream.]),
