@@ -28,7 +28,7 @@ ggplot(dat, aes(x = wt, y = mpg, colour = efficiency_class)) +
   theme_minimal(base_size = 11)
 
 ggsave(
-  filename = here("typst/plots/simple_mtcars.png"),
+  filename = here("output/plots/simple_mtcars.png"),
   width = 14, height = 9, units = "cm", dpi = 300, bg = "white"
 )
 
@@ -38,7 +38,7 @@ tab <- aggregate(cbind(mpg, hp) ~ efficiency_class, data = dat, FUN = mean)
 
 tt(tab) |>
   save_tt(
-    output    = here("typst/tables/simple_mtcars.typ"),
+    output    = here("output/tables/simple_mtcars.typ"),
     overwrite = TRUE
   )
 

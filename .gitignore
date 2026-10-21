@@ -5,10 +5,12 @@ data/*/*
 _tinytrail.yaml
 *.pdf
 LICENSE
-typst/data.json
-typst/plots/
-typst/tables/
+output/*
+!output/*/
+output/*/*
+!output/*/.gitkeep
 .Rproj.user/
 *.Rproj
 .Rhistory
 .RData
+.DS_Store

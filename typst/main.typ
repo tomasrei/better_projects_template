@@ -1,9 +1,13 @@
 // ── Paths & data ─────────────────────────────────────────────────────────────
 // Run scripts/mtcars_clean.R then scripts/mtcars_analyse.R before compiling.
+// R writes everything into output/ at the project root. Typst can only read files
+// inside its root, so compile from the project root with --root . :
+//   typst watch --root . typst/main.typ
+// Paths starting with "/" are relative to that root.
 
-#let plots  = "plots/"
-#let tables = "tables/"
-#let data   = json("data.json")
+#let plots  = "/output/plots/"
+#let tables = "/output/tables/"
+#let data   = json("/output/data.json")
 
 // ── Document ──────────────────────────────────────────────────────────────────
 
