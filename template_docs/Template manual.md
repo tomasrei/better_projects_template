@@ -1,8 +1,8 @@
 # Read first
 
-- `docs/template_overview.pdf` is the visual first look at the workflow. Start there.
+- `template_docs/template_overview.pdf` is the visual first look at the workflow. Start there.
 - This file is the manual: conventions, how to run things, and why.
-- `docs/How to write a function.md` has notes on how to write functions. Will maybe rename that file later when it includes general code guidelines/praxis.
+- `template_docs/How to write a function.md` has notes on how to write functions. Will maybe rename that file later when it includes general code guidelines/praxis.
 
 
 
@@ -19,7 +19,7 @@ project/
 ├── data/
 │   ├── raw/            ← original data, never modified
 │   ├── clean/          ← RDS files written by *_clean.R scripts
-│   └── misc/           ← crosswalks, lookups, small reference files (read only)
+│   └── misc/           ← metadata.xlsx: crosswalks, lookups (read only)
 ├── scripts/
 │   ├── functions.R     ← project-specific custom functions
 │   ├── occupation_clean.R
@@ -30,14 +30,23 @@ project/
 │   └── data.json       ← R writes computed inline stats here (jsonlite)
 ├── typst/
 │   └── main.typ        ← the text; reads from output/
-├── docs/
+├── template_docs/
 │   ├── template_overview.typ / .pdf   ← visual overview of the workflow
 │   ├── Template manual.md             ← this file
 │   └── How to write a function.md
+├── 99_working_notes/
+│   └── daily_log.md    ← notes about the actual project (not the template)
 └── _tinytrail.yaml     ← auto-updated when any script runs
 ```
 
 No numbered prefixes on folders or scripts. Never use `00_`, `01_` etc, yhe ordering always changes anyway. Hopefully the naming convention below is enough to know in wich order the scripts are run.
+The one exception is `99_working_notes/`: the `99_` only makes it sort last in the file list.
+
+### 99_working_notes
+
+Notes about the actual project you are working on, not about the template:
+`daily_log.md` (what you did, found and decided, newest entry on top) plus any
+other notes as separate `.md` files. How the template works lives in `template_docs/`.
 
 ### .gitkeep
 
@@ -77,7 +86,7 @@ regenerate everything else.
 | `scripts/` | code is always committed |
 | `typst/main.typ` | the document is always committed |
 | `data/misc/` | crosswalks and reference files are inputs, not outputs |
-| `docs/` | the manual and the overview source (the PDF itself is ignored, like all PDFs) |
+| `template_docs/` | the manual and the overview source (the PDF itself is ignored, like all PDFs) |
 
 ---
 
@@ -90,6 +99,13 @@ occupation_clean.R
 occupation_analyse_wages.R
 occupation_analyse_industry.R
 ```
+
+**Why the dataset comes first:** all scripts for one dataset sort next to each
+other in the file list, so you see a dataset's whole pipeline at a glance. The
+role (`clean`, `analyse`) tells you the run order, which is why no number
+prefixes are needed. Note that alphabetically `analyse` lands above `clean`;
+the group still stays together. In diagrams, `*_clean.R` means "any
+`{dataset}_clean.R`".
 
 - One clean script per dataset. One or more analyse scripts per dataset, each
   with a descriptive suffix if there are multiple.
@@ -150,7 +166,8 @@ Examples: `f_plot_age_dist()`, `f_tab_descriptives()`, `f_calc_attrition_rate()`
 
 ## Misc / reference files
 
-Store crosswalks, lookups, and small reference datasets in `data/misc/`.
+Store crosswalks, lookups, and small reference datasets in `data/misc/`, by
+default as sheets in `data/misc/metadata.xlsx`.
 R reads these with `readxl::read_excel()`. R never writes to these files.
 Each Excel file can contain multiple sheets.
 
