@@ -66,13 +66,13 @@
 // Folder frame: same look as fc-group, but with a configurable inset, so the
 // folder frames can sit tightly inside the project frame. The label is moved
 // up by the extra inset so it always sits on the frame line.
-#let folder-frame(enclose, label, inset: 6pt) = node(
+#let folder-frame(enclose, label, inset: 6pt, label-size: 7.5pt) = node(
   enclose: enclose, stroke: (paint: border, thickness: 0.8pt, dash: "dashed"),
   fill: none, corner-radius: 5pt, inset: inset, snap: false,
   // place() gives the label zero size, so it can't widen the grid column the
-  // frame's centre falls in.
-  place(top + left, dx: 10pt - inset, dy: 10pt - inset - 1.2em, box(fill: white, inset: (x: 3pt))[
-    #text(size: 7.5pt, weight: "bold", fill: muted, raw(label))]),
+  // frame's centre falls in. dy centres the label on the frame line.
+  place(top + left, dx: 10pt - inset, dy: -inset - 0.6 * label-size, box(fill: white, inset: (x: 3pt))[
+    #text(size: label-size, weight: "bold", fill: muted, raw(label))]),
 )
 
 // JSON icon: a stack of three pages (like fc-icon-docs) with a JSON snippet on
@@ -92,6 +92,84 @@
   #place(top+left, dy: 6pt, json-page(w, h, color))
 ]
 
+// PNG icon: a stack of three pages with a small coloured picture (sky, sun,
+// hills) on the front page and a PNG tag.
+#let png-picture(w, h) = box(width: w, height: h, clip: true, radius: 2pt)[
+  #place(top+left, rect(width: w, height: h, fill: rgb("#dbeafe"), stroke: none))
+  #place(top+left, dx: w * 0.62, dy: h * 0.14, circle(radius: w * 0.11, fill: rgb("#f5b301"), stroke: none))
+  #place(top+left, polygon(fill: rgb("#5b8c5a"), stroke: none,
+    (0pt, h), (0pt, h * 0.72), (w * 0.3, h * 0.42), (w * 0.55, h * 0.75),
+    (w * 0.72, h * 0.58), (w, h * 0.85), (w, h)))
+]
+#let png-page(w, h, color) = box(width: w, height: h)[
+  #place(top+left, rect(width: w, height: h, radius: 3pt, fill: white, stroke: 1.1pt + color))
+  #place(top+left, dx: w * 0.12, dy: h * 0.12, png-picture(w * 0.76, h * 0.5))
+  #place(bottom+left, dy: -h * 0.14, dx: w * 0.14,
+    box(fill: color, radius: 2pt, inset: (x: 4pt, y: 2pt))[#text(fill: white, size: 6.5pt, weight: "bold")[PNG]])
+]
+#let icon-png(w: 1.6cm, h: 2.05cm, color: brand) = box(width: w + 6pt, height: h + 6pt)[
+  #place(top+left, dx: 6pt, rect(width: w, height: h, radius: 3pt, fill: white, stroke: 0.8pt + color))
+  #place(top+left, dx: 3pt, dy: 3pt, rect(width: w, height: h, radius: 3pt, fill: white, stroke: 0.8pt + color))
+  #place(top+left, dy: 6pt, png-page(w, h, color))
+]
+
+// Table icon: a stack of three pages with a small LaTeX/booktabs-style table
+// (thick top and bottom rules, thin rule under the header, no vertical lines)
+// on the front page, and a TYP tag.
+#let tab-page(w, h, color) = box(width: w, height: h)[
+  #place(top+left, rect(width: w, height: h, radius: 3pt, fill: white, stroke: 1.1pt + color))
+  #place(top+left, dx: w * 0.12, dy: h * 0.12 + h * 0.05, box(width: w * 0.76, {
+    set text(fill: color, size: 4.9pt)
+    table(columns: (1fr, 1fr, 1fr), stroke: none, inset: (x: 1pt, y: 1.6pt),
+      align: (left, right, right),
+      table.hline(stroke: 0.9pt + color),
+      [*cyl*], [*mpg*], [*hp*],
+      table.hline(stroke: 0.45pt + color),
+      [4], [26.7], [83],
+      [6], [19.7], [122],
+      [8], [15.1], [209],
+      table.hline(stroke: 0.9pt + color),
+    )
+  }))
+  #place(bottom+left, dy: -h * 0.14, dx: w * 0.14,
+    box(fill: color, radius: 2pt, inset: (x: 4pt, y: 2pt))[#text(fill: white, size: 6.5pt, weight: "bold")[TYP]])
+]
+#let icon-table(w: 1.6cm, h: 2.05cm, color: brand) = box(width: w + 6pt, height: h + 6pt)[
+  #place(top+left, dx: 6pt, rect(width: w, height: h, radius: 3pt, fill: white, stroke: 0.8pt + color))
+  #place(top+left, dx: 3pt, dy: 3pt, rect(width: w, height: h, radius: 3pt, fill: white, stroke: 0.8pt + color))
+  #place(top+left, dy: 6pt, tab-page(w, h, color))
+]
+
+// Report icon: a miniature of the finished report (title, text, the Plots
+// picture, booktabs rules from Tables) on a page with a folded top-right corner,
+// and a PDF tag.
+#let rule(x, y, l, color, t: 0.5pt) = place(top+left, dx: x, dy: y, line(length: l, stroke: t + color))
+#let icon-report(w: 1.6cm, h: 2.05cm, color: brand) = box(width: w, height: h)[
+  #let f = w * 0.22   // size of the folded corner
+  // page outline with the top-right corner cut off
+  #place(top+left, polygon(fill: white, stroke: (paint: color, thickness: 1.1pt, join: "round"),
+    (0pt, 0pt), (w - f, 0pt), (w, f), (w, h), (0pt, h)))
+  // the fold
+  #place(top+left, polygon(fill: color.lighten(70%), stroke: (paint: color, thickness: 1.1pt, join: "round"),
+    (w - f, 0pt), (w - f, f), (w, f)))
+  #let x = w * 0.13
+  #let iw = w * 0.74
+  #rule(x, h * 0.1, iw * 0.6, color, t: 1.6pt)
+  #rule(x, h * 0.17, iw * 0.8, color.lighten(40%))
+  #rule(x, h * 0.21, iw * 0.7, color.lighten(40%))
+  #place(top+left, dx: x, dy: h * 0.26, png-picture(iw * 0.55, h * 0.2))
+  #rule(x + iw * 0.6, h * 0.29, iw * 0.4, color.lighten(40%))
+  #rule(x + iw * 0.6, h * 0.34, iw * 0.4, color.lighten(40%))
+  #rule(x + iw * 0.6, h * 0.39, iw * 0.3, color.lighten(40%))
+  #let y = h * 0.52
+  #rule(x, y, iw, color, t: 0.7pt)
+  #rule(x, y + 2.2pt, iw, color, t: 0.35pt)
+  #for i in range(3) { rule(x + 1pt, y + 4pt + i * 1.8pt, iw - 2pt, color.lighten(50%), t: 0.4pt) }
+  #rule(x, y + 9.6pt, iw, color, t: 0.7pt)
+  #place(bottom+left, dy: -h * 0.08, dx: w * 0.14,
+    box(fill: color, radius: 2pt, inset: (x: 4pt, y: 2pt))[#text(fill: white, size: 6.5pt, weight: "bold")[PDF]])
+]
+
 // Combined figure (candidate to replace both the old overview and the full chain).
 // Rows: lookups + functions.R (read only) on top, the main data -> script chain,
 // then output/ and typst/. Dotted lines = read only.
@@ -103,11 +181,11 @@
   fc-file((1, 1), [Clean], sub: [`scripts/*_clean.R`], icon: fc-icon-doc.with(tag: "R"), kind: "run", name: <clean>),
   fc-file((2, 1), [Clean data], sub: [`data/clean/`], icon: fc-icon-folder, name: <rds>),
   fc-file((3, 1), [Analyse], sub: [`scripts/*_analyse_*.R`], icon: fc-icon-doc.with(tag: "R"), kind: "run", name: <analyse>),
-  fc-file((1, 2), [Plots], sub: box(inset: (bottom: 4pt))[`output/plots/`], icon: fc-icon-docs.with(tag: "PNG"), name: <plots>, outset: 0pt),
-  fc-file((2, 2), [Tables], sub: box(inset: (bottom: 4pt))[`output/tables/`], icon: fc-icon-docs.with(tag: "TYP"), name: <tables>, outset: 0pt),
+  fc-file((1, 2), [Plots], sub: box(inset: (bottom: 4pt))[`output/plots/`], icon: icon-png, name: <plots>, outset: 0pt),
+  fc-file((2, 2), [Tables], sub: box(inset: (bottom: 4pt))[`output/tables/`], icon: icon-table, name: <tables>, outset: 0pt),
   fc-file((3, 2), [Numbers], sub: box(inset: (bottom: 4pt))[`output/data.json`], icon: icon-json, name: <json>, outset: 0pt),
   fc-file((2, 3), [Text], sub: [`typst/main.typ`], icon: fc-icon-doc.with(tag: "TYP"), name: <typ>, outset: 0pt),
-  fc-file((3, 3), [Report], sub: [`typst/main.pdf`], icon: fc-icon-doc.with(tag: "PDF"), kind: "out", name: <pdf>),
+  fc-file((3, 3), [Report], sub: [`typst/main.pdf`], icon: icon-report, kind: "out", name: <pdf>),
 
   // read-only input: functions.R is sourced by both scripts. Workbook stands
   // alone, without arrows.
@@ -127,7 +205,7 @@
 
   // Project folder frame. The folder of each item is in its caption.
   folder-frame((<misc>, <fn>, <raw>, <clean>, <rds>, <analyse>, <plots>, <tables>, <json>, <typ>, <pdf>),
-    "project_folder_name/", inset: 16pt),
+    "project_folder_name/", inset: 16pt, label-size: 11pt),
 )))
 
 
